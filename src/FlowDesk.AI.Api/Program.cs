@@ -2,6 +2,7 @@ using DotNetEnv;
 using FlowDesk.AI.Api.Endpoints;
 using FlowDesk.AI.Infrastructure;
 using FlowDesk.AI.Infrastructure.Persistence;
+using Microsoft.EntityFrameworkCore;
 
 Env.TraversePath().Load();
 
@@ -24,8 +25,10 @@ app.MapGet("/health/database", async (
 {
     try
     {
-        await dbContext.Database.OpenConnectionAsync(cancellationToken);
-        await dbContext.Database.CloseConnectionAsync();
+        var connection = dbContext.Database.GetDbConnection();
+
+        await connection.OpenAsync(cancellationToken);
+        await connection.CloseAsync();
 
         return Results.Ok(new
         {
