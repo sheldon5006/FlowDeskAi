@@ -7,6 +7,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="DotNetEnv" Version="3.2.0" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\FlowDesk.AI.Application\FlowDesk.AI.Application.csproj" />
     <ProjectReference Include="..\FlowDesk.AI.Infrastructure\FlowDesk.AI.Infrastructure.csproj" />
   </ItemGroup>
