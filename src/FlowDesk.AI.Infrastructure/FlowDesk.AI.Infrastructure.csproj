@@ -6,6 +6,11 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.3" />
+    <PackageReference Include="Pgvector.EntityFrameworkCore" Version="0.3.0" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\FlowDesk.AI.Application\FlowDesk.AI.Application.csproj" />
     <ProjectReference Include="..\FlowDesk.AI.Domain\FlowDesk.AI.Domain.csproj" />
   </ItemGroup>
