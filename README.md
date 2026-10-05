@@ -18,66 +18,18 @@ SpatialMaps will be the first client, but FlowDesk AI is intentionally not coupl
 
 ## Secrets and credentials
 
-No real credentials belong in Git.
+Real credentials stay in the local root `.env` file and are never committed to Git.
 
-Local development uses two layers:
-
-- Docker Compose reads PostgreSQL credentials from a local `.env` file.
-- ASP.NET Core secrets such as database connection strings and AI provider API keys use .NET User Secrets.
-
-Create the local Docker environment:
-
-```bash
-copy .env.example .env
-```
-
-Edit `.env` and replace the placeholder password.
-
-Set local ASP.NET secrets:
-
-```bash
-dotnet user-secrets set "ConnectionStrings:FlowDeskDb" "Host=localhost;Port=5432;Database=flowdesk;Username=flowdesk;Password=YOUR_PASSWORD" --project src/FlowDesk.AI.Api
-dotnet user-secrets set "AI:ProviderApiKey" "YOUR_API_KEY" --project src/FlowDesk.AI.Api
-```
-
-Production credentials will be provided by the deployment environment or a dedicated secret store rather than committed to the repository.
-
-## First target capability
-
-Retrieval-Augmented Generation (RAG):
+The repository contains only `.env.example` as a safe configuration template.
 
 ```
-Application
-    |
-    | HTTP
-    v
-FlowDesk.AI.Api
-    |
-    v
-Application layer
-    |
-    +----> vector retrieval
-    |
-    +----> LLM provider
-    |
-    v
-structured AI response
+FlowDeskAi/
+├── .env             # local secrets, ignored by Git
+├── .env.example     # safe template, committed
+└── docker-compose.yml
 ```
 
-## Development approach
-
-Build the platform incrementally:
-
-1. Backend foundation
-2. PostgreSQL + pgvector
-3. Document/data ingestion
-4. Embedding generation
-5. Vector retrieval
-6. RAG orchestration
-7. Natural-language query endpoint
-8. Spatial query interpretation
-9. SpatialMaps integration
-10. Reusable AI capabilities for other applications
+The API loads the root `.env` automatically, including when the application is started from Visual Studio, by traversing parent directories.
 
 ## Local development
 
@@ -85,6 +37,14 @@ Prerequisites:
 
 - .NET 10 SDK
 - Docker Desktop
+
+Create the local environment file:
+
+```bash
+copy .env.example .env
+```
+
+Edit `.env` and replace `POSTGRES_PASSWORD` with your local password.
 
 Start PostgreSQL:
 
@@ -105,4 +65,19 @@ Run the API:
 dotnet run --project src/FlowDesk.AI.Api
 ```
 
-The API currently contains only the platform foundation. AI/RAG functionality will be added next.
+## Current RAG foundation
+
+PostgreSQL with pgvector is now wired into the Infrastructure layer.
+
+The next stages are:
+
+1. Knowledge/document model
+2. Embedding generation
+3. Vector persistence
+4. Similarity retrieval
+5. RAG orchestration
+6. LLM provider integration
+7. Natural-language query API
+8. Spatial query interpretation
+9. SpatialMaps integration
+10. Reusable AI capabilities for other applications
