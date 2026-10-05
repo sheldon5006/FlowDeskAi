@@ -1,6 +1,7 @@
 using DotNetEnv;
 using FlowDesk.AI.Api.Endpoints;
 using FlowDesk.AI.Infrastructure;
+using FlowDesk.AI.Infrastructure.Persistence;
 
 Env.TraversePath().Load();
 
