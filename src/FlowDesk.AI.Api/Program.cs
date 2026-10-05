@@ -16,6 +16,21 @@ app.MapGet("/health", () => Results.Ok(new
     status = "healthy"
 }));
 
+app.MapGet("/health/database", async (
+    FlowDeskDbContext dbContext,
+    CancellationToken cancellationToken) =>
+{
+    var canConnect = await dbContext.Database.CanConnectAsync(cancellationToken);
+
+    return canConnect
+        ? Results.Ok(new
+        {
+            service = "FlowDesk AI",
+            database = "healthy"
+        })
+        : Results.StatusCode(StatusCodes.Status503ServiceUnavailable);
+});
+
 app.MapAiEndpoints();
 
 app.Run();
