@@ -1,0 +1,36 @@
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FlowDesk.AI.Api", "src\FlowDesk.AI.Api\FlowDesk.AI.Api.csproj", "{7B9C5A7D-2F7A-4A0C-8B39-8A4C85D4C1A1}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FlowDesk.AI.Application", "src\FlowDesk.AI.Application\FlowDesk.AI.Application.csproj", "{1D6A02D8-EB8E-4D1D-8E4D-8E0C5C7C1E11}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FlowDesk.AI.Domain", "src\FlowDesk.AI.Domain\FlowDesk.AI.Domain.csproj", "{A9F6EBC2-C7B7-4636-9D7B-2C7D03DAB8B2}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FlowDesk.AI.Infrastructure", "src\FlowDesk.AI.Infrastructure\FlowDesk.AI.Infrastructure.csproj", "{2B5F6C73-2E51-4D3C-9C20-4B3D5DA3B9F8}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{7B9C5A7D-2F7A-4A0C-8B39-8A4C85D4C1A1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7B9C5A7D-2F7A-4A0C-8B39-8A4C85D4C1A1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7B9C5A7D-2F7A-4A0C-8B39-8A4C85D4C1A1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7B9C5A7D-2F7A-4A0C-8B39-8A4C85D4C1A1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1D6A02D8-EB8E-4D1D-8E4D-8E0C5C7C1E11}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1D6A02D8-EB8E-4D1D-8E4D-8E0C5C7C1E11}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1D6A02D8-EB8E-4D1D-8E4D-8E0C5C7C1E11}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1D6A02D8-EB8E-4D1D-8E4D-8E0C5C7C1E11}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A9F6EBC2-C7B7-4636-9D7B-2C7D03DAB8B2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A9F6EBC2-C7B7-4636-9D7B-2C7D03DAB8B2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A9F6EBC2-C7B7-4636-9D7B-2C7D03DAB8B2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A9F6EBC2-C7B7-4636-9D7B-2C7D03DAB8B2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2B5F6C73-2E51-4D3C-9C20-4B3D5DA3B9F8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2B5F6C73-2E51-4D3C-9C20-4B3D5DA3B9F8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2B5F6C73-2E51-4D3C-9C20-4B3D5DA3B9F8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2B5F6C73-2E51-4D3C-9C20-4B3D5DA3B9F8}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal
