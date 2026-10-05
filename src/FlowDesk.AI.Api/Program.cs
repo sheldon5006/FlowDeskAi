@@ -19,17 +19,32 @@ app.MapGet("/health", () => Results.Ok(new
 
 app.MapGet("/health/database", async (
     FlowDeskDbContext dbContext,
+    IWebHostEnvironment environment,
     CancellationToken cancellationToken) =>
 {
-    var canConnect = await dbContext.Database.CanConnectAsync(cancellationToken);
+    try
+    {
+        await dbContext.Database.OpenConnectionAsync(cancellationToken);
+        await dbContext.Database.CloseConnectionAsync();
 
-    return canConnect
-        ? Results.Ok(new
+        return Results.Ok(new
         {
             service = "FlowDesk AI",
             database = "healthy"
-        })
-        : Results.StatusCode(StatusCodes.Status503ServiceUnavailable);
+        });
+    }
+    catch (Exception exception)
+    {
+        if (environment.IsDevelopment())
+        {
+            return Results.Problem(
+                statusCode: StatusCodes.Status503ServiceUnavailable,
+                title: "Database connection failed",
+                detail: $"{exception.GetType().Name}: {exception.Message}");
+        }
+
+        return Results.StatusCode(StatusCodes.Status503ServiceUnavailable);
+    }
 });
 
 app.MapAiEndpoints();
