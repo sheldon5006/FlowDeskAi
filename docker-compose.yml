@@ -1,0 +1,16 @@
+services:
+  flowdesk-postgres:
+    image: pgvector/pgvector:pg18
+    container_name: flowdesk-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: flowdesk
+      POSTGRES_USER: flowdesk
+      POSTGRES_PASSWORD: flowdesk_dev_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - flowdesk_postgres_data:/var/lib/postgresql
+
+volumes:
+  flowdesk_postgres_data:
