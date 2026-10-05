@@ -18,6 +18,16 @@ app.MapGet("/health", () => Results.Ok(new
     status = "healthy"
 }));
 
+app.MapGet("/health/config", (IConfiguration configuration) => Results.Ok(new
+{
+    postgresHost = configuration["POSTGRES_HOST"] ?? "(missing)",
+    postgresPort = configuration["POSTGRES_PORT"] ?? "(missing)",
+    postgresDatabase = configuration["POSTGRES_DB"] ?? "(missing)",
+    postgresUser = configuration["POSTGRES_USER"] ?? "(missing)",
+    passwordSet = !string.IsNullOrWhiteSpace(configuration["POSTGRES_PASSWORD"]),
+    passwordLength = configuration["POSTGRES_PASSWORD"]?.Length ?? 0
+}));
+
 app.MapGet("/health/database", async (
     FlowDeskDbContext dbContext,
     IWebHostEnvironment environment,
