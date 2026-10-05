@@ -4,7 +4,7 @@ using FlowDesk.AI.Infrastructure;
 using FlowDesk.AI.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 
-Env.TraversePath().Load();
+Env.NoClobber().TraversePath().Load();
 
 var builder = WebApplication.CreateBuilder(args);
 
