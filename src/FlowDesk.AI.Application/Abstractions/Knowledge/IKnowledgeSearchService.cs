@@ -5,6 +5,7 @@ namespace FlowDesk.AI.Application.Abstractions.Knowledge;
 public interface IKnowledgeSearchService
 {
     Task<IReadOnlyList<KnowledgeSearchResultDto>> SearchAsync(
+        Guid businessId,
         string query,
         int topK = 5,
         CancellationToken cancellationToken = default);
