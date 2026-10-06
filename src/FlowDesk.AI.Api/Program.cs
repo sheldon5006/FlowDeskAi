@@ -12,6 +12,11 @@ builder.Services.AddFlowDeskInfrastructure(builder.Configuration);
 
 var app = builder.Build();
 
+await app.Services
+    .GetRequiredService<FlowDeskDbContext>()
+    .Database
+    .EnsureCreatedAsync();
+
 app.MapGet("/health", () => Results.Ok(new
 {
     service = "FlowDesk AI",
@@ -53,7 +58,7 @@ app.MapGet("/health/database", async (
             return Results.Problem(
                 statusCode: StatusCodes.Status503ServiceUnavailable,
                 title: "Database connection failed",
-                detail: $"{exception.GetType().Name}: {exception.Message}");
+                detail = $"{exception.GetType().Name}: {exception.Message}");
         }
 
         return Results.StatusCode(StatusCodes.Status503ServiceUnavailable);
@@ -61,5 +66,6 @@ app.MapGet("/health/database", async (
 });
 
 app.MapAiEndpoints();
+app.MapKnowledgeEndpoints();
 
 app.Run();
