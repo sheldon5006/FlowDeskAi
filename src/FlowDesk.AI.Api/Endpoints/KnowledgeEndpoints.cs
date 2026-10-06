@@ -49,6 +49,66 @@ public static class KnowledgeEndpoints
             }
         });
 
+        group.MapPost("/ingest-file", async (
+            IFormFile file,
+            IKnowledgeIngestionService ingestionService,
+            CancellationToken cancellationToken) =>
+        {
+            if (file is null || file.Length == 0)
+            {
+                return Results.BadRequest(new { error = "A non-empty file is required." });
+            }
+
+            if (file.Length > 5 * 1024 * 1024)
+            {
+                return Results.BadRequest(new { error = "The file must be 5 MB or smaller." });
+            }
+
+            var extension = Path.GetExtension(file.FileName).ToLowerInvariant();
+            var supportedExtensions = new[] { ".txt", ".md", ".csv", ".json" };
+
+            if (!supportedExtensions.Contains(extension))
+            {
+                return Results.BadRequest(new
+                {
+                    error = "Supported file types are .txt, .md, .csv, and .json."
+                });
+            }
+
+            try
+            {
+                using var reader = new StreamReader(file.OpenReadStream());
+                var content = await reader.ReadToEndAsync(cancellationToken);
+
+                var result = await ingestionService.IngestAsync(
+                    file.FileName,
+                    content,
+                    cancellationToken);
+
+                return Results.Created(
+                    $"/api/knowledge/documents/{result.Document.Id}",
+                    result);
+            }
+            catch (ArgumentException exception)
+            {
+                return Results.BadRequest(new { error = exception.Message });
+            }
+            catch (InvalidOperationException exception)
+            {
+                return Results.Problem(
+                    statusCode: StatusCodes.Status503ServiceUnavailable,
+                    title: "Knowledge ingestion failed",
+                    detail: exception.Message);
+            }
+            catch (HttpRequestException exception)
+            {
+                return Results.Problem(
+                    statusCode: StatusCodes.Status503ServiceUnavailable,
+                    title: "Embedding provider request failed",
+                    detail: exception.Message);
+            }
+        });
+
         group.MapPost("/documents", async (
             CreateKnowledgeDocumentRequest request,
             IKnowledgeService knowledgeService,
