@@ -14,8 +14,8 @@ var app = builder.Build();
 
 using (var scope = app.Services.CreateScope())
 {
-    var dbContext = scope.ServiceProvider.GetRequiredService<FlowDeskDbContext>();
-    await dbContext.Database.EnsureCreatedAsync();
+    var initializer = scope.ServiceProvider.GetRequiredService<DatabaseInitializer>();
+    await initializer.InitializeAsync();
 }
 
 app.MapGet("/health", () => Results.Ok(new
@@ -66,6 +66,7 @@ app.MapGet("/health/database", async (
     }
 });
 
+app.MapBusinessEndpoints();
 app.MapAiEndpoints();
 app.MapKnowledgeEndpoints();
 
