@@ -8,4 +8,9 @@ public interface IKnowledgeIngestionService
         string source,
         string content,
         CancellationToken cancellationToken = default);
+
+    Task<KnowledgeIngestionResultDto> IngestFileAsync(
+        string fileName,
+        Stream fileStream,
+        CancellationToken cancellationToken = default);
 }
