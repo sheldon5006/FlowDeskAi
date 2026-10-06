@@ -56,6 +56,41 @@ public static class KnowledgeEndpoints
             return Results.Ok(chunks);
         });
 
+        group.MapGet("/search", async (
+            string query,
+            int? topK,
+            IKnowledgeSearchService searchService,
+            CancellationToken cancellationToken) =>
+        {
+            try
+            {
+                var results = await searchService.SearchAsync(
+                    query,
+                    topK ?? 5,
+                    cancellationToken);
+
+                return Results.Ok(results);
+            }
+            catch (ArgumentException exception)
+            {
+                return Results.BadRequest(new { error = exception.Message });
+            }
+            catch (InvalidOperationException exception)
+            {
+                return Results.Problem(
+                    statusCode: StatusCodes.Status503ServiceUnavailable,
+                    title: "Knowledge search failed",
+                    detail: exception.Message);
+            }
+            catch (HttpRequestException exception)
+            {
+                return Results.Problem(
+                    statusCode: StatusCodes.Status503ServiceUnavailable,
+                    title: "Embedding provider request failed",
+                    detail: exception.Message);
+            }
+        });
+
         group.MapPost("/documents/{documentId:guid}/embed", async (
             Guid documentId,
             IKnowledgeEmbeddingService embeddingService,
