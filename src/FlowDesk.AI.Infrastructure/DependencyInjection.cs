@@ -19,6 +19,13 @@ public static class DependencyInjection
         IConfiguration configuration)
     {
         services.AddScoped<IFlowDeskAiService, FlowDeskAiService>();
+
+        services.AddHttpClient<ILLMProvider, OllamaChatProvider>(client =>
+        {
+            client.BaseAddress = new Uri(
+                configuration["OLLAMA_BASE_URL"] ?? "http://localhost:11434/");
+            client.Timeout = TimeSpan.FromMinutes(5);
+        });
         services.AddScoped<IKnowledgeService, KnowledgeService>();
         services.AddScoped<IKnowledgeEmbeddingService, KnowledgeEmbeddingService>();
         services.AddScoped<IKnowledgeSearchService, KnowledgeSearchService>();
