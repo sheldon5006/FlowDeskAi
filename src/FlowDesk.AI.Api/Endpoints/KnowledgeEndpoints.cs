@@ -54,36 +54,23 @@ public static class KnowledgeEndpoints
             IKnowledgeIngestionService ingestionService,
             CancellationToken cancellationToken) =>
         {
-
             if (file is null || file.Length == 0)
             {
                 return Results.BadRequest(new { error = "A non-empty file is required." });
             }
 
-            if (file.Length > 5 * 1024 * 1024)
+            if (file.Length > 10 * 1024 * 1024)
             {
-                return Results.BadRequest(new { error = "The file must be 5 MB or smaller." });
-            }
-
-            var extension = Path.GetExtension(file.FileName).ToLowerInvariant();
-            var supportedExtensions = new[] { ".txt", ".md", ".csv", ".json" };
-
-            if (!supportedExtensions.Contains(extension))
-            {
-                return Results.BadRequest(new
-                {
-                    error = "Supported file types are .txt, .md, .csv, and .json."
-                });
+                return Results.BadRequest(new { error = "The file must be 10 MB or smaller." });
             }
 
             try
             {
-                using var reader = new StreamReader(file.OpenReadStream());
-                var content = await reader.ReadToEndAsync(cancellationToken);
+                await using var stream = file.OpenReadStream();
 
-                var result = await ingestionService.IngestAsync(
+                var result = await ingestionService.IngestFileAsync(
                     file.FileName,
-                    content,
+                    stream,
                     cancellationToken);
 
                 return Results.Created(
