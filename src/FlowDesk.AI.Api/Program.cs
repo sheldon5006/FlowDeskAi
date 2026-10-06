@@ -58,7 +58,7 @@ app.MapGet("/health/database", async (
             return Results.Problem(
                 statusCode: StatusCodes.Status503ServiceUnavailable,
                 title: "Database connection failed",
-                detail = $"{exception.GetType().Name}: {exception.Message}");
+                detail: $"{exception.GetType().Name}: {exception.Message}");
         }
 
         return Results.StatusCode(StatusCodes.Status503ServiceUnavailable);
