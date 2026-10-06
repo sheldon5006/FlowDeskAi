@@ -70,7 +70,7 @@ public sealed class KnowledgeFileTextExtractor : IKnowledgeFileTextExtractor
     {
         using var document = WordprocessingDocument.Open(fileStream, false);
 
-        var body = document.MainDocumentPart?.Document.Body;
+        var body = document.MainDocumentPart?.Document?.Body;
 
         if (body is null)
         {
