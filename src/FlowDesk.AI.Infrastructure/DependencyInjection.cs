@@ -1,5 +1,7 @@
 using FlowDesk.AI.Application.Abstractions.AI;
+using FlowDesk.AI.Application.Abstractions.Knowledge;
 using FlowDesk.AI.Infrastructure.AI;
+using FlowDesk.AI.Infrastructure.Knowledge;
 using FlowDesk.AI.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -15,6 +17,7 @@ public static class DependencyInjection
         IConfiguration configuration)
     {
         services.AddScoped<IFlowDeskAiService, FlowDeskAiService>();
+        services.AddScoped<IKnowledgeService, KnowledgeService>();
 
         services.AddDbContext<FlowDeskDbContext>((_, options) =>
         {
