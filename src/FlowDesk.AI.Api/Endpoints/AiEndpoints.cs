@@ -4,13 +4,13 @@ namespace FlowDesk.AI.Api.Endpoints;
 
 public static class AiEndpoints
 {
-    private sealed record ChatRequest(string Message);
+    private sealed record ChatRequest(string Message, int? TopK);
 
     public static IEndpointRouteBuilder MapAiEndpoints(this IEndpointRouteBuilder endpoints)
     {
         endpoints.MapPost("/api/ai/chat", async (
             ChatRequest request,
-            ILLMProvider llmProvider,
+            IFlowDeskAiService aiService,
             CancellationToken cancellationToken) =>
         {
             try
@@ -20,15 +20,16 @@ public static class AiEndpoints
                     return Results.BadRequest(new { error = "Message is required." });
                 }
 
-                var answer = await llmProvider.GenerateAsync(
-                    "You are FlowDesk AI. Answer clearly and concisely.",
+                var result = await aiService.AskAsync(
                     request.Message,
+                    request.TopK ?? 5,
                     cancellationToken);
 
-                return Results.Ok(new
-                {
-                    answer
-                });
+                return Results.Ok(result);
+            }
+            catch (ArgumentException exception)
+            {
+                return Results.BadRequest(new { error = exception.Message });
             }
             catch (InvalidOperationException exception)
             {
