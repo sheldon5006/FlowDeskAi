@@ -11,9 +11,10 @@ public static class KnowledgeEndpoints
     public static IEndpointRouteBuilder MapKnowledgeEndpoints(
         this IEndpointRouteBuilder endpoints)
     {
-        var group = endpoints.MapGroup("/api/knowledge");
+        var group = endpoints.MapGroup("/api/businesses/{businessId:guid}/knowledge");
 
         group.MapPost("/ingest", async (
+            Guid businessId,
             CreateKnowledgeDocumentRequest request,
             IKnowledgeIngestionService ingestionService,
             CancellationToken cancellationToken) =>
@@ -21,12 +22,13 @@ public static class KnowledgeEndpoints
             try
             {
                 var result = await ingestionService.IngestAsync(
+                    businessId,
                     request.Source,
                     request.Content,
                     cancellationToken);
 
                 return Results.Created(
-                    $"/api/knowledge/documents/{result.Document.Id}",
+                    $"/api/businesses/{businessId}/knowledge/documents/{result.Document.Id}",
                     result);
             }
             catch (ArgumentException exception)
@@ -50,6 +52,7 @@ public static class KnowledgeEndpoints
         });
 
         group.MapPost("/ingest-file", async (
+            Guid businessId,
             IFormFile file,
             IKnowledgeIngestionService ingestionService,
             CancellationToken cancellationToken) =>
@@ -69,12 +72,13 @@ public static class KnowledgeEndpoints
                 await using var stream = file.OpenReadStream();
 
                 var result = await ingestionService.IngestFileAsync(
+                    businessId,
                     file.FileName,
                     stream,
                     cancellationToken);
 
                 return Results.Created(
-                    $"/api/knowledge/documents/{result.Document.Id}",
+                    $"/api/businesses/{businessId}/knowledge/documents/{result.Document.Id}",
                     result);
             }
             catch (ArgumentException exception)
@@ -97,43 +101,26 @@ public static class KnowledgeEndpoints
             }
         }).DisableAntiforgery();
 
-        group.MapPost("/documents", async (
-            CreateKnowledgeDocumentRequest request,
-            IKnowledgeService knowledgeService,
-            CancellationToken cancellationToken) =>
-        {
-            try
-            {
-                var document = await knowledgeService.AddDocumentAsync(
-                    request.Source,
-                    request.Content,
-                    cancellationToken);
-
-                return Results.Created(
-                    $"/api/knowledge/documents/{document.Id}",
-                    document);
-            }
-            catch (ArgumentException exception)
-            {
-                return Results.BadRequest(new { error = exception.Message });
-            }
-        });
-
         group.MapGet("/documents", async (
+            Guid businessId,
             IKnowledgeService knowledgeService,
             CancellationToken cancellationToken) =>
         {
-            var documents = await knowledgeService.GetDocumentsAsync(cancellationToken);
+            var documents = await knowledgeService.GetDocumentsAsync(
+                businessId,
+                cancellationToken);
 
             return Results.Ok(documents);
         });
 
         group.MapGet("/documents/{documentId:guid}/chunks", async (
+            Guid businessId,
             Guid documentId,
             IKnowledgeService knowledgeService,
             CancellationToken cancellationToken) =>
         {
             var chunks = await knowledgeService.GetChunksAsync(
+                businessId,
                 documentId,
                 cancellationToken);
 
@@ -141,6 +128,7 @@ public static class KnowledgeEndpoints
         });
 
         group.MapGet("/search", async (
+            Guid businessId,
             string query,
             int? topK,
             IKnowledgeSearchService searchService,
@@ -149,6 +137,7 @@ public static class KnowledgeEndpoints
             try
             {
                 var results = await searchService.SearchAsync(
+                    businessId,
                     query,
                     topK ?? 5,
                     cancellationToken);
@@ -176,6 +165,7 @@ public static class KnowledgeEndpoints
         });
 
         group.MapPost("/documents/{documentId:guid}/embed", async (
+            Guid businessId,
             Guid documentId,
             IKnowledgeEmbeddingService embeddingService,
             CancellationToken cancellationToken) =>
@@ -183,14 +173,20 @@ public static class KnowledgeEndpoints
             try
             {
                 var embeddedChunkCount = await embeddingService.EmbedDocumentAsync(
+                    businessId,
                     documentId,
                     cancellationToken);
 
                 return Results.Ok(new
                 {
+                    businessId,
                     documentId,
                     embeddedChunkCount
                 });
+            }
+            catch (ArgumentException exception)
+            {
+                return Results.BadRequest(new { error = exception.Message });
             }
             catch (InvalidOperationException exception)
             {
