@@ -54,6 +54,7 @@ public static class KnowledgeEndpoints
             IKnowledgeIngestionService ingestionService,
             CancellationToken cancellationToken) =>
         {
+
             if (file is null || file.Length == 0)
             {
                 return Results.BadRequest(new { error = "A non-empty file is required." });
@@ -107,7 +108,7 @@ public static class KnowledgeEndpoints
                     title: "Embedding provider request failed",
                     detail: exception.Message);
             }
-        });
+        }).DisableAntiforgery();
 
         group.MapPost("/documents", async (
             CreateKnowledgeDocumentRequest request,
