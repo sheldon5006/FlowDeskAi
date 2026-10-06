@@ -28,6 +28,7 @@ public static class DependencyInjection
         });
         services.AddScoped<IKnowledgeService, KnowledgeService>();
         services.AddScoped<IKnowledgeEmbeddingService, KnowledgeEmbeddingService>();
+        services.AddScoped<IKnowledgeIngestionService, KnowledgeIngestionService>();
         services.AddScoped<IKnowledgeSearchService, KnowledgeSearchService>();
 
         RegisterEmbeddingProvider(services, configuration);
