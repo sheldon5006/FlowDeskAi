@@ -5,7 +5,8 @@ namespace FlowDesk.AI.Infrastructure.Knowledge;
 
 public sealed class KnowledgeIngestionService(
     IKnowledgeService knowledgeService,
-    IKnowledgeEmbeddingService embeddingService) : IKnowledgeIngestionService
+    IKnowledgeEmbeddingService embeddingService,
+    IKnowledgeFileTextExtractor fileTextExtractor) : IKnowledgeIngestionService
 {
     public async Task<KnowledgeIngestionResultDto> IngestAsync(
         string source,
@@ -24,5 +25,21 @@ public sealed class KnowledgeIngestionService(
         return new KnowledgeIngestionResultDto(
             document,
             embeddedChunkCount);
+    }
+
+    public async Task<KnowledgeIngestionResultDto> IngestFileAsync(
+        string fileName,
+        Stream fileStream,
+        CancellationToken cancellationToken = default)
+    {
+        var content = await fileTextExtractor.ExtractAsync(
+            fileStream,
+            fileName,
+            cancellationToken);
+
+        return await IngestAsync(
+            fileName,
+            content,
+            cancellationToken);
     }
 }
