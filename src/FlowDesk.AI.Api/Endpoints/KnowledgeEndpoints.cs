@@ -56,6 +56,39 @@ public static class KnowledgeEndpoints
             return Results.Ok(chunks);
         });
 
+        group.MapPost("/documents/{documentId:guid}/embed", async (
+            Guid documentId,
+            IKnowledgeEmbeddingService embeddingService,
+            CancellationToken cancellationToken) =>
+        {
+            try
+            {
+                var embeddedChunkCount = await embeddingService.EmbedDocumentAsync(
+                    documentId,
+                    cancellationToken);
+
+                return Results.Ok(new
+                {
+                    documentId,
+                    embeddedChunkCount
+                });
+            }
+            catch (InvalidOperationException exception)
+            {
+                return Results.Problem(
+                    statusCode: StatusCodes.Status503ServiceUnavailable,
+                    title: "Embedding generation failed",
+                    detail: exception.Message);
+            }
+            catch (HttpRequestException exception)
+            {
+                return Results.Problem(
+                    statusCode: StatusCodes.Status503ServiceUnavailable,
+                    title: "Embedding provider request failed",
+                    detail: exception.Message);
+            }
+        });
+
         return endpoints;
     }
 }
