@@ -21,6 +21,7 @@ public static class DependencyInjection
         services.AddScoped<IFlowDeskAiService, FlowDeskAiService>();
         services.AddScoped<IKnowledgeService, KnowledgeService>();
         services.AddScoped<IKnowledgeEmbeddingService, KnowledgeEmbeddingService>();
+        services.AddScoped<IKnowledgeSearchService, KnowledgeSearchService>();
 
         RegisterEmbeddingProvider(services, configuration);
 
