@@ -13,6 +13,42 @@ public static class KnowledgeEndpoints
     {
         var group = endpoints.MapGroup("/api/knowledge");
 
+        group.MapPost("/ingest", async (
+            CreateKnowledgeDocumentRequest request,
+            IKnowledgeIngestionService ingestionService,
+            CancellationToken cancellationToken) =>
+        {
+            try
+            {
+                var result = await ingestionService.IngestAsync(
+                    request.Source,
+                    request.Content,
+                    cancellationToken);
+
+                return Results.Created(
+                    $"/api/knowledge/documents/{result.Document.Id}",
+                    result);
+            }
+            catch (ArgumentException exception)
+            {
+                return Results.BadRequest(new { error = exception.Message });
+            }
+            catch (InvalidOperationException exception)
+            {
+                return Results.Problem(
+                    statusCode: StatusCodes.Status503ServiceUnavailable,
+                    title: "Knowledge ingestion failed",
+                    detail: exception.Message);
+            }
+            catch (HttpRequestException exception)
+            {
+                return Results.Problem(
+                    statusCode: StatusCodes.Status503ServiceUnavailable,
+                    title: "Embedding provider request failed",
+                    detail: exception.Message);
+            }
+        });
+
         group.MapPost("/documents", async (
             CreateKnowledgeDocumentRequest request,
             IKnowledgeService knowledgeService,
