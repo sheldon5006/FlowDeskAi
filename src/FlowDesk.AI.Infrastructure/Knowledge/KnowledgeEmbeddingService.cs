@@ -11,9 +11,32 @@ public sealed class KnowledgeEmbeddingService(
     IEmbeddingProvider embeddingProvider) : IKnowledgeEmbeddingService
 {
     public async Task<int> EmbedDocumentAsync(
+        Guid businessId,
         Guid documentId,
         CancellationToken cancellationToken = default)
     {
+        if (businessId == Guid.Empty)
+        {
+            throw new ArgumentException("Business ID is required.", nameof(businessId));
+        }
+
+        if (documentId == Guid.Empty)
+        {
+            throw new ArgumentException("Document ID is required.", nameof(documentId));
+        }
+
+        var documentExists = await dbContext.KnowledgeDocuments
+            .AnyAsync(
+                x => x.Id == documentId && x.BusinessId == businessId,
+                cancellationToken);
+
+        if (!documentExists)
+        {
+            throw new ArgumentException(
+                $"Document '{documentId}' was not found for the selected business.",
+                nameof(documentId));
+        }
+
         var chunks = await dbContext.KnowledgeChunks
             .Where(x => x.KnowledgeDocumentId == documentId && x.Embedding == null)
             .OrderBy(x => x.ChunkIndex)
