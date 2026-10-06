@@ -22,12 +22,7 @@ public static class DependencyInjection
         services.AddScoped<IKnowledgeService, KnowledgeService>();
         services.AddScoped<IKnowledgeEmbeddingService, KnowledgeEmbeddingService>();
 
-        services.AddHttpClient<IEmbeddingProvider, OpenAiEmbeddingProvider>(client =>
-        {
-            client.BaseAddress = new Uri(
-                configuration["OPENAI_BASE_URL"] ?? "https://api.openai.com/");
-            client.Timeout = TimeSpan.FromSeconds(60);
-        });
+        RegisterEmbeddingProvider(services, configuration);
 
         services.AddDbContext<FlowDeskDbContext>((_, options) =>
         {
@@ -40,6 +35,40 @@ public static class DependencyInjection
         });
 
         return services;
+    }
+
+    private static void RegisterEmbeddingProvider(
+        IServiceCollection services,
+        IConfiguration configuration)
+    {
+        var provider = configuration["EMBEDDING_PROVIDER"]?.Trim().ToLowerInvariant();
+
+        switch (provider)
+        {
+            case "ollama":
+            case null:
+            case "":
+                services.AddHttpClient<IEmbeddingProvider, OllamaEmbeddingProvider>(client =>
+                {
+                    client.BaseAddress = new Uri(
+                        configuration["OLLAMA_BASE_URL"] ?? "http://localhost:11434/");
+                    client.Timeout = TimeSpan.FromMinutes(5);
+                });
+                break;
+
+            case "openai":
+                services.AddHttpClient<IEmbeddingProvider, OpenAiEmbeddingProvider>(client =>
+                {
+                    client.BaseAddress = new Uri(
+                        configuration["OPENAI_BASE_URL"] ?? "https://api.openai.com/");
+                    client.Timeout = TimeSpan.FromSeconds(60);
+                });
+                break;
+
+            default:
+                throw new InvalidOperationException(
+                    $"Unsupported EMBEDDING_PROVIDER '{provider}'. Use 'ollama' or 'openai'.");
+        }
     }
 
     private static string BuildPostgresConnectionString(IConfiguration configuration)
