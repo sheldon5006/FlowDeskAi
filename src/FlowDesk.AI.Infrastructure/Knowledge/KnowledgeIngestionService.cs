@@ -9,11 +9,13 @@ public sealed class KnowledgeIngestionService(
     IKnowledgeFileTextExtractor fileTextExtractor) : IKnowledgeIngestionService
 {
     public async Task<KnowledgeIngestionResultDto> IngestAsync(
+        Guid businessId,
         string source,
         string content,
         CancellationToken cancellationToken = default)
     {
         var document = await knowledgeService.AddDocumentAsync(
+            businessId,
             source,
             content,
             cancellationToken);
@@ -28,6 +30,7 @@ public sealed class KnowledgeIngestionService(
     }
 
     public async Task<KnowledgeIngestionResultDto> IngestFileAsync(
+        Guid businessId,
         string fileName,
         Stream fileStream,
         CancellationToken cancellationToken = default)
@@ -38,6 +41,7 @@ public sealed class KnowledgeIngestionService(
             cancellationToken);
 
         return await IngestAsync(
+            businessId,
             fileName,
             content,
             cancellationToken);
