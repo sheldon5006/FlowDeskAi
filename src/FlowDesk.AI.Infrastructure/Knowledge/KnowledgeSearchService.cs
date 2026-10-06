@@ -36,18 +36,30 @@ public sealed class KnowledgeSearchService(
 
         var queryVector = new Vector(embeddings[0]);
 
-        return await dbContext.KnowledgeChunks
+        var matches = await dbContext.KnowledgeChunks
             .AsNoTracking()
             .Where(x => x.Embedding != null)
-            .OrderBy(x => EF.Functions.CosineDistance(x.Embedding!, queryVector))
+            .OrderBy(x => x.Embedding!.CosineDistance(queryVector))
             .Take(topK)
+            .Select(x => new
+            {
+                x.Id,
+                x.KnowledgeDocumentId,
+                Source = x.KnowledgeDocument.Source,
+                x.ChunkIndex,
+                x.Content,
+                Distance = x.Embedding!.CosineDistance(queryVector)
+            })
+            .ToListAsync(cancellationToken);
+
+        return matches
             .Select(x => new KnowledgeSearchResultDto(
                 x.Id,
                 x.KnowledgeDocumentId,
-                x.KnowledgeDocument.Source,
+                x.Source,
                 x.ChunkIndex,
                 x.Content,
-                1d - EF.Functions.CosineDistance(x.Embedding!, queryVector)))
-            .ToListAsync(cancellationToken);
+                1d - x.Distance))
+            .ToList();
     }
 }
