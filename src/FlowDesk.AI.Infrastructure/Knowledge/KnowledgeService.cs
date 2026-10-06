@@ -11,10 +11,16 @@ public sealed class KnowledgeService(FlowDeskDbContext dbContext) : IKnowledgeSe
     private const int ChunkOverlap = 150;
 
     public async Task<KnowledgeDocumentDto> AddDocumentAsync(
+        Guid businessId,
         string source,
         string content,
         CancellationToken cancellationToken = default)
     {
+        if (businessId == Guid.Empty)
+        {
+            throw new ArgumentException("Business ID is required.", nameof(businessId));
+        }
+
         if (string.IsNullOrWhiteSpace(source))
         {
             throw new ArgumentException("Source is required.", nameof(source));
@@ -25,9 +31,20 @@ public sealed class KnowledgeService(FlowDeskDbContext dbContext) : IKnowledgeSe
             throw new ArgumentException("Content is required.", nameof(content));
         }
 
+        var businessExists = await dbContext.Businesses
+            .AnyAsync(x => x.Id == businessId, cancellationToken);
+
+        if (!businessExists)
+        {
+            throw new ArgumentException(
+                $"Business '{businessId}' was not found.",
+                nameof(businessId));
+        }
+
         var document = new KnowledgeDocumentRecord
         {
             Id = Guid.NewGuid(),
+            BusinessId = businessId,
             Source = source.Trim(),
             Content = content.Trim(),
             CreatedAtUtc = DateTimeOffset.UtcNow
@@ -49,6 +66,7 @@ public sealed class KnowledgeService(FlowDeskDbContext dbContext) : IKnowledgeSe
 
         return new KnowledgeDocumentDto(
             document.Id,
+            document.BusinessId,
             document.Source,
             document.Content,
             document.Chunks.Count,
@@ -56,13 +74,16 @@ public sealed class KnowledgeService(FlowDeskDbContext dbContext) : IKnowledgeSe
     }
 
     public async Task<IReadOnlyList<KnowledgeDocumentDto>> GetDocumentsAsync(
+        Guid businessId,
         CancellationToken cancellationToken = default)
     {
         return await dbContext.KnowledgeDocuments
             .AsNoTracking()
+            .Where(x => x.BusinessId == businessId)
             .OrderByDescending(x => x.CreatedAtUtc)
             .Select(x => new KnowledgeDocumentDto(
                 x.Id,
+                x.BusinessId,
                 x.Source,
                 x.Content,
                 x.Chunks.Count,
@@ -71,12 +92,15 @@ public sealed class KnowledgeService(FlowDeskDbContext dbContext) : IKnowledgeSe
     }
 
     public async Task<IReadOnlyList<KnowledgeChunkDto>> GetChunksAsync(
+        Guid businessId,
         Guid documentId,
         CancellationToken cancellationToken = default)
     {
         return await dbContext.KnowledgeChunks
             .AsNoTracking()
-            .Where(x => x.KnowledgeDocumentId == documentId)
+            .Where(x =>
+                x.KnowledgeDocumentId == documentId &&
+                x.KnowledgeDocument.BusinessId == businessId)
             .OrderBy(x => x.ChunkIndex)
             .Select(x => new KnowledgeChunkDto(
                 x.Id,
