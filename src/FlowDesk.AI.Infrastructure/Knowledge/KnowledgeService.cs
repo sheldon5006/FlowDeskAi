@@ -70,6 +70,23 @@ public sealed class KnowledgeService(FlowDeskDbContext dbContext) : IKnowledgeSe
             .ToListAsync(cancellationToken);
     }
 
+    public async Task<IReadOnlyList<KnowledgeChunkDto>> GetChunksAsync(
+        Guid documentId,
+        CancellationToken cancellationToken = default)
+    {
+        return await dbContext.KnowledgeChunks
+            .AsNoTracking()
+            .Where(x => x.KnowledgeDocumentId == documentId)
+            .OrderBy(x => x.ChunkIndex)
+            .Select(x => new KnowledgeChunkDto(
+                x.Id,
+                x.KnowledgeDocumentId,
+                x.ChunkIndex,
+                x.Content,
+                x.CreatedAtUtc))
+            .ToListAsync(cancellationToken);
+    }
+
     private static IEnumerable<(string Content, int Index)> CreateChunks(string content)
     {
         var normalized = content.Replace("\r\n", "\n").Trim();
