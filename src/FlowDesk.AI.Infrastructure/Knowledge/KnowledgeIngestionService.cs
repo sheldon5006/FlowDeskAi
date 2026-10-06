@@ -21,6 +21,7 @@ public sealed class KnowledgeIngestionService(
             cancellationToken);
 
         var embeddedChunkCount = await embeddingService.EmbedDocumentAsync(
+            businessId,
             document.Id,
             cancellationToken);
 
