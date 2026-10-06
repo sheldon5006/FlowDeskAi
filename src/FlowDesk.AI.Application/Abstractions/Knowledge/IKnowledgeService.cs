@@ -11,4 +11,8 @@ public interface IKnowledgeService
 
     Task<IReadOnlyList<KnowledgeDocumentDto>> GetDocumentsAsync(
         CancellationToken cancellationToken = default);
+
+    Task<IReadOnlyList<KnowledgeChunkDto>> GetChunksAsync(
+        Guid documentId,
+        CancellationToken cancellationToken = default);
 }
