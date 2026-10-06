@@ -8,7 +8,8 @@ public static class AiEndpoints
 
     public static IEndpointRouteBuilder MapAiEndpoints(this IEndpointRouteBuilder endpoints)
     {
-        endpoints.MapPost("/api/ai/chat", async (
+        endpoints.MapPost("/api/businesses/{businessId:guid}/ai/chat", async (
+            Guid businessId,
             ChatRequest request,
             IFlowDeskAiService aiService,
             CancellationToken cancellationToken) =>
@@ -21,6 +22,7 @@ public static class AiEndpoints
                 }
 
                 var result = await aiService.AskAsync(
+                    businessId,
                     request.Message,
                     request.TopK ?? 5,
                     cancellationToken);
