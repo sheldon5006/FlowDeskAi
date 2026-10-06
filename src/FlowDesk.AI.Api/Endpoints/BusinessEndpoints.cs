@@ -13,7 +13,7 @@ public static class BusinessEndpoints
     {
         var group = endpoints.MapGroup("/api/businesses");
 
-        group.MapPost("/", async (
+        group.MapPost("", async (
             CreateBusinessRequest request,
             IBusinessService businessService,
             CancellationToken cancellationToken) =>
@@ -35,7 +35,7 @@ public static class BusinessEndpoints
             }
         });
 
-        group.MapGet("/", async (
+        group.MapGet("", async (
             IBusinessService businessService,
             CancellationToken cancellationToken) =>
         {
