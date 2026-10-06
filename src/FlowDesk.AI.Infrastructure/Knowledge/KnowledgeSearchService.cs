@@ -4,6 +4,7 @@ using FlowDesk.AI.Application.Knowledge;
 using FlowDesk.AI.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Pgvector;
+using Pgvector.EntityFrameworkCore;
 
 namespace FlowDesk.AI.Infrastructure.Knowledge;
 
