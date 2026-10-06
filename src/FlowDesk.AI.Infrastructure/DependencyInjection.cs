@@ -35,6 +35,8 @@ public static class DependencyInjection
 
         RegisterEmbeddingProvider(services, configuration);
 
+        services.AddScoped<DatabaseInitializer>();
+
         services.AddDbContext<FlowDeskDbContext>((_, options) =>
         {
             var connectionString = BuildPostgresConnectionString(configuration);
