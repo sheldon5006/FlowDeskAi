@@ -1,5 +1,4 @@
 using Microsoft.EntityFrameworkCore;
-using Npgsql;
 
 namespace FlowDesk.AI.Infrastructure.Persistence;
 
@@ -11,11 +10,6 @@ public sealed class DatabaseInitializer(FlowDeskDbContext dbContext)
     public async Task InitializeAsync(CancellationToken cancellationToken = default)
     {
         await dbContext.Database.EnsureCreatedAsync(cancellationToken);
-
-        await using var connection = new NpgsqlConnection(
-            dbContext.Database.GetConnectionString());
-
-        await connection.OpenAsync(cancellationToken);
 
         const string sql = """
             CREATE TABLE IF NOT EXISTS businesses
@@ -68,7 +62,8 @@ public sealed class DatabaseInitializer(FlowDeskDbContext dbContext)
                 ON knowledge_documents ("BusinessId");
             """;
 
-        await using var command = new NpgsqlCommand(sql, connection);
-        await command.ExecuteNonQueryAsync(cancellationToken);
+        await dbContext.Database.ExecuteSqlRawAsync(
+            sql,
+            cancellationToken);
     }
 }
