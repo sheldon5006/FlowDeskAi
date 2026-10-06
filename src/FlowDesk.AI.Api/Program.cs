@@ -12,10 +12,11 @@ builder.Services.AddFlowDeskInfrastructure(builder.Configuration);
 
 var app = builder.Build();
 
-await app.Services
-    .GetRequiredService<FlowDeskDbContext>()
-    .Database
-    .EnsureCreatedAsync();
+using (var scope = app.Services.CreateScope())
+{
+    var dbContext = scope.ServiceProvider.GetRequiredService<FlowDeskDbContext>();
+    await dbContext.Database.EnsureCreatedAsync();
+}
 
 app.MapGet("/health", () => Results.Ok(new
 {
