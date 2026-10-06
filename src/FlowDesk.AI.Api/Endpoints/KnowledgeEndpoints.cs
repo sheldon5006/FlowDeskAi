@@ -44,6 +44,18 @@ public static class KnowledgeEndpoints
             return Results.Ok(documents);
         });
 
+        group.MapGet("/documents/{documentId:guid}/chunks", async (
+            Guid documentId,
+            IKnowledgeService knowledgeService,
+            CancellationToken cancellationToken) =>
+        {
+            var chunks = await knowledgeService.GetChunksAsync(
+                documentId,
+                cancellationToken);
+
+            return Results.Ok(chunks);
+        });
+
         return endpoints;
     }
 }
