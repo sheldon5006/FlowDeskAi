@@ -13,10 +13,16 @@ public sealed class KnowledgeSearchService(
     IEmbeddingProvider embeddingProvider) : IKnowledgeSearchService
 {
     public async Task<IReadOnlyList<KnowledgeSearchResultDto>> SearchAsync(
+        Guid businessId,
         string query,
         int topK = 5,
         CancellationToken cancellationToken = default)
     {
+        if (businessId == Guid.Empty)
+        {
+            throw new ArgumentException("Business ID is required.", nameof(businessId));
+        }
+
         if (string.IsNullOrWhiteSpace(query))
         {
             throw new ArgumentException("Query is required.", nameof(query));
@@ -38,13 +44,16 @@ public sealed class KnowledgeSearchService(
 
         var matches = await dbContext.KnowledgeChunks
             .AsNoTracking()
-            .Where(x => x.Embedding != null)
+            .Where(x =>
+                x.Embedding != null &&
+                x.KnowledgeDocument.BusinessId == businessId)
             .OrderBy(x => x.Embedding!.CosineDistance(queryVector))
             .Take(topK)
             .Select(x => new
             {
                 x.Id,
                 x.KnowledgeDocumentId,
+                BusinessId = x.KnowledgeDocument.BusinessId,
                 Source = x.KnowledgeDocument.Source,
                 x.ChunkIndex,
                 x.Content,
@@ -56,6 +65,7 @@ public sealed class KnowledgeSearchService(
             .Select(x => new KnowledgeSearchResultDto(
                 x.Id,
                 x.KnowledgeDocumentId,
+                x.BusinessId,
                 x.Source,
                 x.ChunkIndex,
                 x.Content,
