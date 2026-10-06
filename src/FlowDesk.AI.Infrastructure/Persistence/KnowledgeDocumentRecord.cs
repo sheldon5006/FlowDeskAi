@@ -1,5 +1,3 @@
-using Pgvector;
-
 namespace FlowDesk.AI.Infrastructure.Persistence;
 
 public sealed class KnowledgeDocumentRecord
@@ -10,7 +8,7 @@ public sealed class KnowledgeDocumentRecord
 
     public string Content { get; set; } = string.Empty;
 
-    public Vector? Embedding { get; set; }
-
     public DateTimeOffset CreatedAtUtc { get; set; }
+
+    public ICollection<KnowledgeChunkRecord> Chunks { get; set; } = [];
 }
