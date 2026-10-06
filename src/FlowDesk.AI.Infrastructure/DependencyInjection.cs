@@ -1,6 +1,8 @@
 using FlowDesk.AI.Application.Abstractions.AI;
+using FlowDesk.AI.Application.Abstractions.Embeddings;
 using FlowDesk.AI.Application.Abstractions.Knowledge;
 using FlowDesk.AI.Infrastructure.AI;
+using FlowDesk.AI.Infrastructure.Embeddings;
 using FlowDesk.AI.Infrastructure.Knowledge;
 using FlowDesk.AI.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
@@ -18,6 +20,14 @@ public static class DependencyInjection
     {
         services.AddScoped<IFlowDeskAiService, FlowDeskAiService>();
         services.AddScoped<IKnowledgeService, KnowledgeService>();
+        services.AddScoped<IKnowledgeEmbeddingService, KnowledgeEmbeddingService>();
+
+        services.AddHttpClient<IEmbeddingProvider, OpenAiEmbeddingProvider>(client =>
+        {
+            client.BaseAddress = new Uri(
+                configuration["OPENAI_BASE_URL"] ?? "https://api.openai.com/");
+            client.Timeout = TimeSpan.FromSeconds(60);
+        });
 
         services.AddDbContext<FlowDeskDbContext>((_, options) =>
         {
