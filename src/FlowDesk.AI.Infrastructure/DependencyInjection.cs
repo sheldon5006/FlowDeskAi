@@ -26,6 +26,7 @@ public static class DependencyInjection
                 configuration["OLLAMA_BASE_URL"] ?? "http://localhost:11434/");
             client.Timeout = TimeSpan.FromMinutes(5);
         });
+        services.AddScoped<IBusinessService, BusinessService>();
         services.AddScoped<IKnowledgeService, KnowledgeService>();
         services.AddScoped<IKnowledgeEmbeddingService, KnowledgeEmbeddingService>();
         services.AddScoped<IKnowledgeIngestionService, KnowledgeIngestionService>();
