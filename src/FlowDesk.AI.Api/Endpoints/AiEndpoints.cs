@@ -1,3 +1,4 @@
+using FlowDesk.AI.Api.Security;
 using FlowDesk.AI.Application.Abstractions.AI;
 
 namespace FlowDesk.AI.Api.Endpoints;
@@ -8,9 +9,9 @@ public static class AiEndpoints
 
     public static IEndpointRouteBuilder MapAiEndpoints(this IEndpointRouteBuilder endpoints)
     {
-        endpoints.MapPost("/api/businesses/{businessId:guid}/ai/chat", async (
-            Guid businessId,
+        endpoints.MapPost("/api/ai/chat", async (
             ChatRequest request,
+            HttpContext httpContext,
             IFlowDeskAiService aiService,
             CancellationToken cancellationToken) =>
         {
@@ -21,6 +22,9 @@ public static class AiEndpoints
                     return Results.BadRequest(new { error = "Message is required." });
                 }
 
+                var businessId = BusinessContext.GetRequiredBusinessId(
+                    httpContext.User);
+
                 var result = await aiService.AskAsync(
                     businessId,
                     request.Message,
@@ -28,6 +32,10 @@ public static class AiEndpoints
                     cancellationToken);
 
                 return Results.Ok(result);
+            }
+            catch (UnauthorizedAccessException exception)
+            {
+                return Results.Unauthorized();
             }
             catch (ArgumentException exception)
             {
@@ -47,7 +55,7 @@ public static class AiEndpoints
                     title: "AI provider request failed",
                     detail: exception.Message);
             }
-        });
+        }).RequireAuthorization();
 
         endpoints.MapGet("/api/ai/capabilities", async (
             IFlowDeskAiService aiService,
