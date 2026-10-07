@@ -27,6 +27,7 @@ public static class DependencyInjection
             client.Timeout = TimeSpan.FromMinutes(5);
         });
         services.AddScoped<IBusinessService, BusinessService>();
+        services.AddScoped<IBusinessApiKeyService, BusinessApiKeyService>();
         services.AddScoped<IKnowledgeService, KnowledgeService>();
         services.AddScoped<IKnowledgeEmbeddingService, KnowledgeEmbeddingService>();
         services.AddScoped<IKnowledgeIngestionService, KnowledgeIngestionService>();
