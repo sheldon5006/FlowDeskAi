@@ -60,6 +60,26 @@ public sealed class DatabaseInitializer(FlowDeskDbContext dbContext)
 
             CREATE INDEX IF NOT EXISTS "IX_knowledge_documents_BusinessId"
                 ON knowledge_documents ("BusinessId");
+
+            CREATE TABLE IF NOT EXISTS business_api_keys
+            (
+                "Id" uuid NOT NULL PRIMARY KEY,
+                "BusinessId" uuid NOT NULL,
+                "KeyHash" character varying(64) NOT NULL,
+                "CreatedAtUtc" timestamp with time zone NOT NULL,
+                "RevokedAtUtc" timestamp with time zone NULL,
+                "LastUsedAtUtc" timestamp with time zone NULL,
+                CONSTRAINT "FK_business_api_keys_businesses_BusinessId"
+                    FOREIGN KEY ("BusinessId")
+                    REFERENCES businesses ("Id")
+                    ON DELETE CASCADE
+            );
+
+            CREATE UNIQUE INDEX IF NOT EXISTS "IX_business_api_keys_KeyHash"
+                ON business_api_keys ("KeyHash");
+
+            CREATE INDEX IF NOT EXISTS "IX_business_api_keys_BusinessId"
+                ON business_api_keys ("BusinessId");
             """;
 
         await dbContext.Database.ExecuteSqlRawAsync(
