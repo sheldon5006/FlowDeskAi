@@ -6,6 +6,8 @@ public sealed class FlowDeskDbContext(DbContextOptions<FlowDeskDbContext> option
 {
     public DbSet<BusinessRecord> Businesses => Set<BusinessRecord>();
 
+    public DbSet<BusinessApiKeyRecord> BusinessApiKeys => Set<BusinessApiKeyRecord>();
+
     public DbSet<KnowledgeDocumentRecord> KnowledgeDocuments => Set<KnowledgeDocumentRecord>();
 
     public DbSet<KnowledgeChunkRecord> KnowledgeChunks => Set<KnowledgeChunkRecord>();
@@ -13,6 +15,28 @@ public sealed class FlowDeskDbContext(DbContextOptions<FlowDeskDbContext> option
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.HasPostgresExtension("vector");
+
+        modelBuilder.Entity<BusinessApiKeyRecord>(entity =>
+        {
+            entity.ToTable("business_api_keys");
+
+            entity.HasKey(x => x.Id);
+
+            entity.Property(x => x.KeyHash)
+                .HasMaxLength(64)
+                .IsRequired();
+
+            entity.HasIndex(x => x.KeyHash)
+                .IsUnique();
+
+            entity.Property(x => x.CreatedAtUtc)
+                .IsRequired();
+
+            entity.HasOne(x => x.Business)
+                .WithMany()
+                .HasForeignKey(x => x.BusinessId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
 
         modelBuilder.Entity<BusinessRecord>(entity =>
         {
