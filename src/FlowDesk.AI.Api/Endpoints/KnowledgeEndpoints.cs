@@ -1,3 +1,4 @@
+using FlowDesk.AI.Api.Security;
 using FlowDesk.AI.Application.Abstractions.Knowledge;
 
 namespace FlowDesk.AI.Api.Endpoints;
@@ -11,16 +12,20 @@ public static class KnowledgeEndpoints
     public static IEndpointRouteBuilder MapKnowledgeEndpoints(
         this IEndpointRouteBuilder endpoints)
     {
-        var group = endpoints.MapGroup("/api/businesses/{businessId:guid}/knowledge");
+        var group = endpoints
+            .MapGroup("/api/knowledge")
+            .RequireAuthorization();
 
         group.MapPost("/ingest", async (
-            Guid businessId,
             CreateKnowledgeDocumentRequest request,
+            HttpContext httpContext,
             IKnowledgeIngestionService ingestionService,
             CancellationToken cancellationToken) =>
         {
             try
             {
+                var businessId = BusinessContext.GetRequiredBusinessId(httpContext.User);
+
                 var result = await ingestionService.IngestAsync(
                     businessId,
                     request.Source,
@@ -28,8 +33,12 @@ public static class KnowledgeEndpoints
                     cancellationToken);
 
                 return Results.Created(
-                    $"/api/businesses/{businessId}/knowledge/documents/{result.Document.Id}",
+                    $"/api/knowledge/documents/{result.Document.Id}",
                     result);
+            }
+            catch (UnauthorizedAccessException)
+            {
+                return Results.Unauthorized();
             }
             catch (ArgumentException exception)
             {
@@ -52,8 +61,8 @@ public static class KnowledgeEndpoints
         });
 
         group.MapPost("/ingest-file", async (
-            Guid businessId,
             IFormFile file,
+            HttpContext httpContext,
             IKnowledgeIngestionService ingestionService,
             CancellationToken cancellationToken) =>
         {
@@ -69,6 +78,8 @@ public static class KnowledgeEndpoints
 
             try
             {
+                var businessId = BusinessContext.GetRequiredBusinessId(httpContext.User);
+
                 await using var stream = file.OpenReadStream();
 
                 var result = await ingestionService.IngestFileAsync(
@@ -78,8 +89,12 @@ public static class KnowledgeEndpoints
                     cancellationToken);
 
                 return Results.Created(
-                    $"/api/businesses/{businessId}/knowledge/documents/{result.Document.Id}",
+                    $"/api/knowledge/documents/{result.Document.Id}",
                     result);
+            }
+            catch (UnauthorizedAccessException)
+            {
+                return Results.Unauthorized();
             }
             catch (ArgumentException exception)
             {
@@ -101,11 +116,43 @@ public static class KnowledgeEndpoints
             }
         }).DisableAntiforgery();
 
-        group.MapGet("/documents", async (
-            Guid businessId,
+        group.MapPost("/documents", async (
+            CreateKnowledgeDocumentRequest request,
+            HttpContext httpContext,
             IKnowledgeService knowledgeService,
             CancellationToken cancellationToken) =>
         {
+            try
+            {
+                var businessId = BusinessContext.GetRequiredBusinessId(httpContext.User);
+
+                var document = await knowledgeService.AddDocumentAsync(
+                    businessId,
+                    request.Source,
+                    request.Content,
+                    cancellationToken);
+
+                return Results.Created(
+                    $"/api/knowledge/documents/{document.Id}",
+                    document);
+            }
+            catch (UnauthorizedAccessException)
+            {
+                return Results.Unauthorized();
+            }
+            catch (ArgumentException exception)
+            {
+                return Results.BadRequest(new { error = exception.Message });
+            }
+        });
+
+        group.MapGet("/documents", async (
+            HttpContext httpContext,
+            IKnowledgeService knowledgeService,
+            CancellationToken cancellationToken) =>
+        {
+            var businessId = BusinessContext.GetRequiredBusinessId(httpContext.User);
+
             var documents = await knowledgeService.GetDocumentsAsync(
                 businessId,
                 cancellationToken);
@@ -114,11 +161,13 @@ public static class KnowledgeEndpoints
         });
 
         group.MapGet("/documents/{documentId:guid}/chunks", async (
-            Guid businessId,
             Guid documentId,
+            HttpContext httpContext,
             IKnowledgeService knowledgeService,
             CancellationToken cancellationToken) =>
         {
+            var businessId = BusinessContext.GetRequiredBusinessId(httpContext.User);
+
             var chunks = await knowledgeService.GetChunksAsync(
                 businessId,
                 documentId,
@@ -128,14 +177,16 @@ public static class KnowledgeEndpoints
         });
 
         group.MapGet("/search", async (
-            Guid businessId,
             string query,
             int? topK,
+            HttpContext httpContext,
             IKnowledgeSearchService searchService,
             CancellationToken cancellationToken) =>
         {
             try
             {
+                var businessId = BusinessContext.GetRequiredBusinessId(httpContext.User);
+
                 var results = await searchService.SearchAsync(
                     businessId,
                     query,
@@ -143,6 +194,10 @@ public static class KnowledgeEndpoints
                     cancellationToken);
 
                 return Results.Ok(results);
+            }
+            catch (UnauthorizedAccessException)
+            {
+                return Results.Unauthorized();
             }
             catch (ArgumentException exception)
             {
@@ -165,13 +220,15 @@ public static class KnowledgeEndpoints
         });
 
         group.MapPost("/documents/{documentId:guid}/embed", async (
-            Guid businessId,
             Guid documentId,
+            HttpContext httpContext,
             IKnowledgeEmbeddingService embeddingService,
             CancellationToken cancellationToken) =>
         {
             try
             {
+                var businessId = BusinessContext.GetRequiredBusinessId(httpContext.User);
+
                 var embeddedChunkCount = await embeddingService.EmbedDocumentAsync(
                     businessId,
                     documentId,
@@ -183,6 +240,10 @@ public static class KnowledgeEndpoints
                     documentId,
                     embeddedChunkCount
                 });
+            }
+            catch (UnauthorizedAccessException)
+            {
+                return Results.Unauthorized();
             }
             catch (ArgumentException exception)
             {
