@@ -1,13 +1,22 @@
 using DotNetEnv;
 using FlowDesk.AI.Api.Endpoints;
+using FlowDesk.AI.Api.Security;
 using FlowDesk.AI.Infrastructure;
 using FlowDesk.AI.Infrastructure.Persistence;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.EntityFrameworkCore;
 
 Env.NoClobber().TraversePath().Load();
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Services
+    .AddAuthentication(BusinessApiKeyAuthenticationHandler.SchemeName)
+    .AddScheme<AuthenticationSchemeOptions, BusinessApiKeyAuthenticationHandler>(
+        BusinessApiKeyAuthenticationHandler.SchemeName,
+        _ => { });
+
+builder.Services.AddAuthorization();
 builder.Services.AddFlowDeskInfrastructure(builder.Configuration);
 
 var app = builder.Build();
@@ -17,6 +26,9 @@ using (var scope = app.Services.CreateScope())
     var initializer = scope.ServiceProvider.GetRequiredService<DatabaseInitializer>();
     await initializer.InitializeAsync();
 }
+
+app.UseAuthentication();
+app.UseAuthorization();
 
 app.MapGet("/health", () => Results.Ok(new
 {
@@ -67,6 +79,7 @@ app.MapGet("/health/database", async (
 });
 
 app.MapBusinessEndpoints();
+app.MapBusinessApiKeyEndpoints();
 app.MapAiEndpoints();
 app.MapKnowledgeEndpoints();
 
