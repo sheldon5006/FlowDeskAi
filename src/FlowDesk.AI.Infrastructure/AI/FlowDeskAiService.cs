@@ -51,8 +51,9 @@ public sealed class FlowDeskAiService(
 
         if (relevantSources.Count == 0)
         {
-            throw new InvalidOperationException(
-                "The selected business does not contain enough relevant information to answer this question.");
+            return new AiAnswerDto(
+                "The selected business's knowledge base does not contain enough information to answer this question.",
+                []);
         }
 
         var context = new StringBuilder();
