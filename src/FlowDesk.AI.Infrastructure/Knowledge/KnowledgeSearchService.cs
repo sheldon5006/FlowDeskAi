@@ -3,6 +3,7 @@ using FlowDesk.AI.Application.Abstractions.Knowledge;
 using FlowDesk.AI.Application.Knowledge;
 using FlowDesk.AI.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Pgvector;
 using Pgvector.EntityFrameworkCore;
 
@@ -10,7 +11,8 @@ namespace FlowDesk.AI.Infrastructure.Knowledge;
 
 public sealed class KnowledgeSearchService(
     FlowDeskDbContext dbContext,
-    IEmbeddingProvider embeddingProvider) : IKnowledgeSearchService
+    IEmbeddingProvider embeddingProvider,
+    IConfiguration configuration) : IKnowledgeSearchService
 {
     public async Task<IReadOnlyList<KnowledgeSearchResultDto>> SearchAsync(
         Guid businessId,
@@ -30,6 +32,14 @@ public sealed class KnowledgeSearchService(
 
         topK = Math.Clamp(topK, 1, 20);
 
+        var minimumSimilarity = double.TryParse(
+            configuration["RAG_MIN_SIMILARITY"],
+            out var configuredThreshold)
+            ? configuredThreshold
+            : 0.25;
+
+        minimumSimilarity = Math.Clamp(minimumSimilarity, 0d, 1d);
+
         var embeddings = await embeddingProvider.GenerateEmbeddingsAsync(
             [query.Trim()],
             cancellationToken);
@@ -41,12 +51,14 @@ public sealed class KnowledgeSearchService(
         }
 
         var queryVector = new Vector(embeddings[0]);
+        var maximumDistance = 1d - minimumSimilarity;
 
         var matches = await dbContext.KnowledgeChunks
             .AsNoTracking()
             .Where(x =>
                 x.Embedding != null &&
-                x.KnowledgeDocument.BusinessId == businessId)
+                x.KnowledgeDocument.BusinessId == businessId &&
+                x.Embedding!.CosineDistance(queryVector) <= maximumDistance)
             .OrderBy(x => x.Embedding!.CosineDistance(queryVector))
             .Take(topK)
             .Select(x => new
